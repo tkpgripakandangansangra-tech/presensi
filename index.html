@@ -165,7 +165,7 @@
           <div>
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">Nama Guru & NUG</label>
             <select id="select-guru" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-indigo-500">
-              <option value="">-- Menghubungkan ke tabel... --</option>
+              <option value="">-- Kosong! Pastikan Sinkron Master --</option>
             </select>
           </div>
           <div>
@@ -210,13 +210,13 @@
     <!-- TAB 4: CONFIG -->
     <section id="view-config" class="hidden flex flex-col gap-4">
       <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-2xl space-y-4">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Integrasi Web App Apps Script</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Integrasi Sistem (URL Opsional)</h3>
+        <p class="text-[10px] text-slate-400">Jika aplikasi diakses dari URL Web App langsung, data akan otomatis tersinkronisasi tanpa URL.</p>
         <div class="space-y-2">
-          <label class="block text-[11px] font-semibold text-slate-400">URL Web App Router.gs</label>
-          <input type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-brand-500">
+          <label class="block text-[11px] font-semibold text-slate-400">URL Web App Router.gs Anda</label>
+          <input type="url" id="gas-url-input" placeholder="URL Lengkap (Opsional jika native)..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-brand-500">
           <div class="flex items-center gap-2 pt-1">
-            <button onclick="pingGasEndpoint()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-brand-400 border border-slate-700 rounded-xl font-bold text-xs transition">Tes Sync (Ping)</button>
-            <button onclick="loadMasterDataFromGas(true)" class="flex-1 py-2.5 bg-brand-500 hover:bg-brand-400 active:scale-95 text-slate-950 rounded-xl font-extrabold text-xs transition">Sinkron Master</button>
+            <button onclick="loadMasterDataFromGas(true)" class="w-full py-2.5 bg-brand-500 hover:bg-brand-400 active:scale-95 text-slate-950 rounded-xl font-extrabold text-xs transition">Sinkron Ulang Master Data</button>
           </div>
         </div>
         <div class="border-t border-slate-800/80 pt-4 space-y-3">
@@ -243,7 +243,6 @@
   </nav>
 
   <script>
-    const CONFIG_SEKOLAH = { gasUrl: "", lat: -6.200000, lng: 106.816666 };
     let masterGuruList = [], studentDirectory = {}, currentTab = "siswa";
     let html5MobileScanner = null, isScannerActive = false, cameraFacing = "environment", isTorchActive = false;
     let teacherMediaStream = null, capturedSelfieDataUrl = null, currentGeoCoords = null, isGpsPass = false, geoWatchId = null;
@@ -340,7 +339,7 @@
 
     function processStudentAttendanceRecord(nisCode) {
       const cleanNis = String(nisCode).trim(), student = studentDirectory[cleanNis];
-      if (!student) { playBeepReject(); showToast(`NIS '${cleanNis}' Tidak Ditemukan!`, "error"); return; }
+      if (!student) { playBeepReject(); showToast(`NIS '${cleanNis}' Tidak Ditemukan! Cek Data di Master Siswa.`, "error"); return; }
       if (!checkTimeLockLogic('siswa', null, cleanNis)) { playBeepReject(); return; }
 
       playBeepSuccess();
@@ -423,43 +422,64 @@
       try { confetti({ particleCount: 35, spread: 65, origin: { y: 0.6 } }); } catch (e) {} playBeepSuccess(); showToast("Presensi Guru terkirim!", "success"); syncPayloadToGas("ABSENSI_GURU", record);
     }
 
+    // 100% RELIABLE SINKRONISASI (GABUNGAN NATIVE + FETCH)
     async function syncPayloadToGas(actionName, payload) {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.nativePostPresensi(Object.assign({ action: actionName }, payload));
+        return;
+      }
       const gasUrl = document.getElementById("gas-url-input").value.trim(); if (!gasUrl) return;
       try { fetch(gasUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(Object.assign({ action: actionName }, payload)) }); } catch (err) {}
     }
 
-    // MEMPERBAIKI BUG PEMISAH URL JSONP (? DAN &) AGAR TIDAK BENTROK DENGAN ROUTER
     async function loadMasterDataFromGas(showToastAlert = false) {
-      const gasUrl = document.getElementById("gas-url-input").value.trim();
-      if (!gasUrl) return;
-      if (showToastAlert) showToast("Sinkronisasi Master...", "info");
+      if (showToastAlert) showToast("Sinkronisasi Master Data...", "info");
+      
+      // JIKA DIAKSES DARI GOOGLE WEB APP LANGSUNG
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(jsonStr) {
+            try {
+              const data = JSON.parse(jsonStr);
+              if (data && data.success) {
+                masterGuruList = data.guru || []; studentDirectory = data.siswa || {};
+                const guruSelect = document.getElementById("select-guru");
+                if (guruSelect) guruSelect.innerHTML = masterGuruList.map(g => `<option value="${g.nug}|${g.nama}">${g.nug} - ${g.nama}</option>`).join("");
+                if (showToastAlert) showToast(`Berhasil Native: ${masterGuruList.length} Guru & ${Object.keys(studentDirectory).length} Siswa`, "success");
+              }
+            } catch(e) { if(showToastAlert) showToast("Gagal memecah format data Native", "error"); }
+          })
+          .withFailureHandler(function(err) { if(showToastAlert) showToast("Error Native: " + err.message, "error"); })
+          .nativeGetMasterPresensi();
+        return;
+      }
 
+      // JIKA DIAKSES DARI FILE HTML LOKAL / WEB LAIN (JSONP)
+      const gasUrl = document.getElementById("gas-url-input").value.trim();
+      if (!gasUrl) { if(showToastAlert) showToast("Silakan masukkan URL Web App untuk sinkron", "error"); return; }
       try {
-        const cbName = "gasCb_" + Date.now();
-        const script = document.createElement("script");
+        const cbName = "gasCb_" + Date.now(); const script = document.createElement("script");
         window[cbName] = function(data) {
           if (data && data.success) {
             masterGuruList = data.guru || []; studentDirectory = data.siswa || {};
             const guruSelect = document.getElementById("select-guru");
             if (guruSelect) guruSelect.innerHTML = masterGuruList.map(g => `<option value="${g.nug}|${g.nama}">${g.nug} - ${g.nama}</option>`).join("");
-            if (showToastAlert) showToast(`Berhasil: ${masterGuruList.length} Guru & ${Object.keys(studentDirectory).length} Siswa`, "success");
-          }
+            if (showToastAlert) showToast(`Berhasil: ${masterGuruList.length} Guru & ${Object.keys(studentDirectory).length} Siswa ditemukan`, "success");
+          } else { if (showToastAlert) showToast("Data kosong. Periksa file backend.", "error"); }
           delete window[cbName]; script.remove();
         };
-        // Fix Krusial URL Separator
         const separator = gasUrl.includes("?") ? "&" : "?";
         script.src = `${gasUrl}${separator}action=GET_MASTER&callback=${cbName}&_=${Date.now()}`;
         document.head.appendChild(script);
-      } catch (err) { if (showToastAlert) showToast("Gagal Terhubung ke Router", "error"); }
+      } catch (err) { if (showToastAlert) showToast("Gagal Terhubung.", "error"); }
     }
 
-    function pingGasEndpoint() { loadMasterDataFromGas(true); }
     function setLogTab(type) { logActiveFilter = type; document.getElementById("btn-tab-log-siswa").className = type === "siswa" ? "py-2 rounded-xl font-bold bg-brand-500 text-slate-950 flex items-center justify-center gap-1.5" : "py-2 rounded-xl font-bold text-slate-400 flex items-center justify-center gap-1.5"; document.getElementById("btn-tab-log-guru").className = type === "guru" ? "py-2 rounded-xl font-bold bg-indigo-500 text-white flex items-center justify-center gap-1.5" : "py-2 rounded-xl font-bold text-slate-400 flex items-center justify-center gap-1.5"; renderLogListView(); }
     function renderLogListView() { const container = document.getElementById("log-list-container"), records = logActiveFilter === "siswa" ? logsSiswa : logsGuru; if (records.length === 0) { container.innerHTML = `<div class="text-center py-4 text-xs text-slate-500">Kosong</div>`; return; } if (logActiveFilter === "siswa") { container.innerHTML = records.map(r => `<div class="p-3 bg-slate-950 rounded-2xl border border-slate-800/80 flex items-center justify-between"><div><span class="text-xs font-bold text-white">${r.NAMA_SISWA}</span><br><span class="text-[10px] text-slate-400">${r.NIS} | ${r.TIMESTAMP.substring(11,19)}</span></div><span class="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-500/15 text-brand-300">Hadir</span></div>`).join(""); } else { container.innerHTML = records.map(g => `<div class="p-3 bg-slate-950 rounded-2xl border border-slate-800/80 flex items-center justify-between"><div><span class="text-xs font-bold text-white">${g.NAMA_GURU}</span><br><span class="text-[10px] text-slate-400">${g.JAM_DATANG !== "-" ? "Masuk: " + g.JAM_DATANG : "Pulang: " + g.JAM_PULANG}</span></div><span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300">Valid</span></div>`).join(""); } }
     function updateBadgeCounts() { document.getElementById("count-siswa-badge").innerText = logsSiswa.length; document.getElementById("count-guru-badge").innerText = logsGuru.length; }
     function showToast(message, type = "info") { const w = document.getElementById("toast-wrapper"), t = document.createElement("div"), st = { success: "bg-emerald-950 text-emerald-200 border-emerald-500/40", error: "bg-red-950 text-red-200 border-red-500/40" }; t.className = `px-3.5 py-3 rounded-2xl border text-xs font-semibold shadow-2xl transition-all flex justify-between ${st[type]||st.info}`; t.innerHTML = `<span>${message}</span>`; w.appendChild(t); setTimeout(() => { t.style.opacity="0"; setTimeout(()=>t.remove(), 250); }, 3200); }
 
-    window.addEventListener("DOMContentLoaded", () => { document.getElementById("gas-url-input").value = CONFIG_SEKOLAH.gasUrl; loadMasterDataFromGas(false); });
+    window.addEventListener("DOMContentLoaded", () => { loadMasterDataFromGas(false); });
   </script>
 </body>
 </html>
