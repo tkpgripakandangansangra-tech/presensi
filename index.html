@@ -35,15 +35,12 @@
 </head>
 <body class="h-full flex flex-col font-sans text-slate-100 bg-slate-950 overflow-x-hidden selection:bg-brand-500 relative">
 
-  <!-- OVERLAY LOCKOUT SISTEM (07:30 s/d 10:30 WIB) -->
   <div id="global-lock-overlay" class="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-xl hidden flex-col items-center justify-center p-6 text-center">
     <div class="w-24 h-24 rounded-3xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 mb-6 shadow-[0_0_40px_rgba(239,68,68,0.2)]">
       <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
     </div>
     <h2 class="text-2xl font-extrabold text-white mb-2 uppercase tracking-wide">Sistem Terkunci</h2>
-    <p class="text-slate-400 text-sm max-w-xs leading-relaxed">
-      Aplikasi presensi ditutup sementara dari pukul <b class="text-white">07:30</b> s/d <b class="text-white">10:30 WIB</b>.<br><br>Sistem akan terbuka otomatis untuk absen pulang Guru pada pukul 10:30 WIB.
-    </p>
+    <p class="text-slate-400 text-sm max-w-xs leading-relaxed">Aplikasi presensi ditutup sementara dari pukul <b class="text-white">07:30</b> s/d <b class="text-white">10:30 WIB</b>.<br><br>Sistem terbuka otomatis pukul 10:30 WIB.</p>
     <div id="lock-clock-display" class="mt-8 font-mono text-xl text-red-400 font-bold bg-red-950/50 px-6 py-3 rounded-xl border border-red-900/50">--:--:-- WIB</div>
   </div>
 
@@ -52,31 +49,22 @@
       <div class="flex items-center gap-2.5">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center font-extrabold text-slate-950 text-base shadow-md shadow-brand-500/20 shrink-0">TK</div>
         <div>
-          <div class="flex items-center gap-1.5">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Presensi Digital TK</span>
-            <span id="conn-pill" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">ONLINE</span>
-          </div>
+          <div class="flex items-center gap-1.5"><span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Presensi Digital TK</span><span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">ONLINE</span></div>
           <h1 class="text-xs sm:text-sm font-extrabold tracking-tight text-white uppercase leading-tight">TK PGRI Pakandangan Sangra</h1>
           <p id="live-clock" class="text-[10px] font-mono text-slate-400 mt-0.5">Memuat waktu...</p>
         </div>
       </div>
-      <button onclick="switchTab('config')" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition active:scale-95">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      </button>
+      <button onclick="switchTab('config')" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition active:scale-95"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button>
     </div>
   </header>
 
   <main class="flex-1 w-full max-w-md mx-auto px-4 pt-3 pb-24 flex flex-col gap-4 overflow-y-auto">
     <div id="toast-wrapper" class="fixed top-14 left-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-md mx-auto"></div>
 
-    <!-- TAB 1: ABSENSI SISWA -->
     <section id="view-siswa" class="flex flex-col gap-4">
       <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-3.5 shadow-2xl flex flex-col gap-3 relative">
         <div class="flex items-center justify-between px-1">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-ping"></span>
-            <h2 class="text-xs font-bold uppercase tracking-wider text-brand-400">Scanner Kartu Barcode</h2>
-          </div>
+          <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-ping"></span><h2 class="text-xs font-bold uppercase tracking-wider text-brand-400">Scanner Barcode</h2></div>
           <div class="flex items-center gap-1.5">
             <button onclick="toggleMobileTorch()" class="p-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs flex items-center gap-1 active:scale-90 transition"><svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></button>
             <button onclick="toggleMobileStudentCamera()" class="p-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs flex items-center gap-1 active:scale-90 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button>
@@ -85,11 +73,7 @@
 
         <div class="relative w-full aspect-[1/1] bg-black rounded-2xl overflow-hidden flex items-center justify-center border border-slate-800 shadow-inner">
           <div id="mobile-barcode-viewport" class="w-full h-full"></div>
-          <div class="scanner-reticle">
-            <div class="scanner-corner c-tl"></div><div class="scanner-corner c-tr"></div>
-            <div class="scanner-corner c-bl"></div><div class="scanner-corner c-br"></div>
-            <div class="scanner-beam"></div>
-          </div>
+          <div class="scanner-reticle"><div class="scanner-corner c-tl"></div><div class="scanner-corner c-tr"></div><div class="scanner-corner c-bl"></div><div class="scanner-corner c-br"></div><div class="scanner-beam"></div></div>
           <div id="siswa-camera-splash" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 text-center z-10">
             <div class="w-16 h-16 rounded-2xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 mb-3"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg></div>
             <h3 class="text-sm font-bold text-white mb-1">Kamera Siap</h3>
@@ -102,81 +86,33 @@
           <button onclick="handleManualNis()" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-xs rounded-xl border border-slate-700 transition">Input</button>
         </div>
       </div>
-
-      <div id="siswa-recent-card" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Hasil Scan Terakhir</span>
-          <span id="scan-feedback-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Menunggu scan...</span>
-        </div>
-        <div id="siswa-detail-view" class="p-4 rounded-xl bg-slate-950/80 border border-dashed border-slate-800 text-center">
-          <p class="text-xs text-slate-400">Arahkan kamera ke barcode siswa untuk merekam kehadiran harian.</p>
-        </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+        <div class="flex items-center justify-between mb-2"><span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Hasil Scan Terakhir</span><span id="scan-feedback-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Menunggu scan...</span></div>
+        <div id="siswa-detail-view" class="p-4 rounded-xl bg-slate-950/80 border border-dashed border-slate-800 text-center"><p class="text-xs text-slate-400">Arahkan kamera ke barcode siswa untuk merekam kehadiran.</p></div>
       </div>
     </section>
 
-    <!-- TAB 2: ABSENSI GURU -->
     <section id="view-guru" class="hidden flex flex-col gap-4">
-      <div class="hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-4 shadow-2xl flex-col gap-3">
-        <span id="gps-status-badge"></span><span id="gps-val-distance"></span><span id="gps-val-mock"></span><span id="gps-val-acc"></span><span id="wm-gps-line"></span>
-      </div>
-
+      <div class="hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-4 shadow-2xl flex-col gap-3"><span id="gps-status-badge"></span><span id="gps-val-distance"></span><span id="gps-val-mock"></span><span id="gps-val-acc"></span><span id="wm-gps-line"></span></div>
       <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-3.5 shadow-2xl flex flex-col gap-3 mt-2">
-        <div class="flex items-center justify-between px-1">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Kamera Selfie Langsung</span>
-          <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">Lokasi Terkunci</span>
-        </div>
-
+        <div class="flex items-center justify-between px-1"><span class="text-xs font-bold uppercase tracking-wider text-slate-300">Kamera Selfie Langsung</span><span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">Lokasi Terkunci</span></div>
         <div class="relative w-full aspect-[3/4] bg-black rounded-2xl overflow-hidden flex items-center justify-center border border-slate-800 shadow-inner">
-          <video id="guru-video-stream" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
-          <canvas id="guru-photo-canvas" class="hidden"></canvas>
-          <img id="guru-preview-img" class="hidden absolute inset-0 w-full h-full object-cover z-20" alt="Selfie Absen">
-          
-          <div id="guru-wm-preview" class="absolute bottom-2 left-2 right-2 bg-black/75 backdrop-blur-md rounded-xl p-2 text-[10px] font-mono text-slate-200 z-10 pointer-events-none border border-white/10 space-y-0.5">
-            <div id="wm-time-line" class="font-bold text-white">WAKTU AKTIF...</div>
-            <div class="flex items-center justify-between text-emerald-400 text-[9px] pt-0.5 font-sans font-bold">
-              <span>TK PGRI PAKANDANGAN SANGRA</span><span>GEO-VERIFIED</span>
-            </div>
-          </div>
-
-          <div id="guru-camera-splash" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 text-center z-30">
-            <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-3"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
-            <button onclick="startMobileTeacherCamera()" class="w-full py-3.5 mt-4 bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white font-extrabold text-xs rounded-xl shadow-lg transition">BUKA KAMERA DEPAN</button>
-          </div>
+          <video id="guru-video-stream" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video><canvas id="guru-photo-canvas" class="hidden"></canvas><img id="guru-preview-img" class="hidden absolute inset-0 w-full h-full object-cover z-20" alt="Selfie Absen">
+          <div id="guru-wm-preview" class="absolute bottom-2 left-2 right-2 bg-black/75 backdrop-blur-md rounded-xl p-2 text-[10px] font-mono text-slate-200 z-10 pointer-events-none border border-white/10 space-y-0.5"><div id="wm-time-line" class="font-bold text-white">WAKTU AKTIF...</div><div class="flex items-center justify-between text-emerald-400 text-[9px] pt-0.5 font-sans font-bold"><span>TK PGRI PAKANDANGAN SANGRA</span><span>GEO-VERIFIED</span></div></div>
+          <div id="guru-camera-splash" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 text-center z-30"><div class="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-3"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div><button onclick="startMobileTeacherCamera()" class="w-full py-3.5 mt-4 bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white font-extrabold text-xs rounded-xl shadow-lg transition">BUKA KAMERA DEPAN</button></div>
         </div>
-
         <div class="flex items-center gap-2">
           <button id="btn-guru-snap" onclick="captureTeacherPhoto()" class="flex-1 py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white font-bold text-xs rounded-xl shadow-lg transition">Ambil Foto Selfie</button>
           <button id="btn-guru-retake" onclick="retakeTeacherPhoto()" class="hidden px-4 py-3.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-bold text-xs rounded-xl border border-slate-700 transition">Ulang Foto</button>
         </div>
-
         <div class="space-y-3 pt-1">
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Nama Guru & NUG</label>
-            <select id="select-guru" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-indigo-500">
-              <option value="">-- Menunggu Sinkronisasi... --</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Jenis Presensi (Otomatis)</label>
-            <select id="guru-tipe" disabled class="w-full bg-slate-900 border border-slate-700 text-slate-300 rounded-xl px-3 py-2.5 text-xs cursor-not-allowed">
-              <option value="DATANG">Jam Datang (Sesi Pagi)</option>
-              <option value="PULANG">Jam Pulang (Sesi Siang)</option>
-            </select>
-          </div>
-
-          <div class="hidden">
-            <select id="guru-status-opt"><option value="Hadir">Hadir</option></select>
-            <input type="text" id="guru-keterangan-txt" value="Hadir">
-          </div>
-
-          <button id="btn-submit-guru-final" onclick="submitGuruAttendance()" disabled class="w-full py-3.5 bg-brand-500 hover:bg-brand-400 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed active:scale-98 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg transition mt-1">
-            KIRIM ABSENSI GURU
-          </button>
+          <div><label class="block text-[11px] font-semibold text-slate-400 mb-1">Nama Guru & NUG</label><select id="select-guru" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-indigo-500"><option value="">-- Menunggu Sinkronisasi Data... --</option></select></div>
+          <div><label class="block text-[11px] font-semibold text-slate-400 mb-1">Jenis Presensi (Otomatis)</label><select id="guru-tipe" disabled class="w-full bg-slate-900 border border-slate-700 text-slate-300 rounded-xl px-3 py-2.5 text-xs cursor-not-allowed"><option value="DATANG">Jam Datang (Sesi Pagi)</option><option value="PULANG">Jam Pulang (Sesi Siang)</option></select></div>
+          <button id="btn-submit-guru-final" onclick="submitGuruAttendance()" disabled class="w-full py-3.5 bg-brand-500 hover:bg-brand-400 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed active:scale-98 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg transition mt-1">KIRIM ABSENSI GURU</button>
         </div>
       </div>
     </section>
 
-    <!-- TAB 3: LOG -->
     <section id="view-log" class="hidden flex flex-col gap-4">
       <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-2xl flex flex-col gap-3">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Riwayat Presensi Hari Ini</h3>
@@ -188,32 +124,17 @@
       </div>
     </section>
 
-    <!-- TAB 4: CONFIG -->
+    <!-- TAB CONFIGURASI - UNTUK TESTING URL -->
     <section id="view-config" class="hidden flex flex-col gap-4">
       <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-2xl space-y-4">
         <div class="text-center pb-2 border-b border-slate-800/80">
-          <div class="w-12 h-12 mx-auto bg-brand-500/10 text-brand-400 rounded-full flex items-center justify-center mb-3">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-          </div>
-          <h3 class="text-sm font-bold text-white">Sistem Sinkronisasi Native</h3>
-          <p class="text-[11px] text-slate-400 mt-1">Sistem ini sudah menggunakan koneksi Native Google tanpa URL eksternal.</p>
+          <h3 class="text-sm font-bold text-white">Cek Koneksi</h3>
+          <p class="text-[11px] text-slate-400 mt-1">Pastikan URL Apps Script yang dimasukkan sudah benar.</p>
         </div>
-
         <div class="flex flex-col gap-2">
           <button onclick="loadMasterDataFromGas(true)" class="w-full py-3 bg-brand-500 hover:bg-brand-400 active:scale-98 text-slate-950 rounded-xl font-extrabold text-xs transition shadow-lg">
-            SINKRON ULANG DATA SERVER
+            SINKRON ULANG DATA SERVER SEKARANG
           </button>
-        </div>
-
-        <div class="border-t border-slate-800/80 pt-4 space-y-3">
-          <div class="flex items-center justify-between">
-            <h4 class="text-xs font-bold text-slate-300">Koordinat Pusat Sekolah</h4>
-            <button onclick="calibrateCurrentGps()" class="text-[10px] text-brand-400 font-bold bg-brand-500/10 px-2.5 py-1 rounded-lg border border-brand-500/20 active:scale-95 transition">Ganti Titik HP Ini</button>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div><label class="block text-[10px] text-slate-400 mb-1">Latitude</label><input type="text" id="school-lat-input" value="-6.200000" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono"></div>
-            <div><label class="block text-[10px] text-slate-400 mb-1">Longitude</label><input type="text" id="school-lng-input" value="106.816666" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono"></div>
-          </div>
         </div>
       </div>
     </section>
@@ -229,9 +150,17 @@
   </nav>
 
   <script>
-    let masterGuruList = [];
-    let studentDirectory = {};
-    let currentTab = "siswa";
+    // =======================================================================
+    // ⚙️ KONFIGURASI APLIKASI (PASTE URL ROUTER.GS ANDA DISINI)
+    // =======================================================================
+    const CONFIG_SEKOLAH = { 
+      // GANTI URL DI BAWAH INI DENGAN URL WEB APP ROUTER.GS MILIK ANDA (YANG ADA ?app=presensi)
+      gasUrl: "https://script.google.com/macros/s/AKfycbwhPCEvVuDmEC57huiYMV0vcKVnPj0pnQQqEHG0W3goGtXympbIiClu6Evz8Cl6LGJ0/exec?app=presensi", 
+      lat: -6.200000, 
+      lng: 106.816666 
+    };
+
+    let masterGuruList = [], studentDirectory = {}, currentTab = "siswa";
     let html5MobileScanner = null, isScannerActive = false, cameraFacing = "environment", isTorchActive = false;
     let teacherMediaStream = null, capturedSelfieDataUrl = null, currentGeoCoords = null, isGpsPass = false, geoWatchId = null;
     let logsSiswa = [], logsGuru = [], logActiveFilter = "siswa", audioCtx = null;
@@ -241,28 +170,20 @@
       const h = now.getHours(), m = now.getMinutes(), totalM = h * 60 + m;
       const timeStrWib = now.toLocaleTimeString("id-ID") + " WIB";
       
-      const clockEl = document.getElementById("live-clock");
-      if (clockEl) clockEl.innerText = timeStrWib;
-      
-      const wmTimeEl = document.getElementById("wm-time-line");
-      if (wmTimeEl) wmTimeEl.innerText = now.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
-      
-      const lockClockEl = document.getElementById("lock-clock-display");
-      if (lockClockEl) lockClockEl.innerText = timeStrWib;
+      const clockEl = document.getElementById("live-clock"); if (clockEl) clockEl.innerText = timeStrWib;
+      const wmTimeEl = document.getElementById("wm-time-line"); if (wmTimeEl) wmTimeEl.innerText = now.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
+      const lockClockEl = document.getElementById("lock-clock-display"); if (lockClockEl) lockClockEl.innerText = timeStrWib;
 
       const lockOverlay = document.getElementById("global-lock-overlay");
       if (lockOverlay) {
         if (totalM >= 450 && totalM < 630) {
           if (lockOverlay.classList.contains("hidden")) {
-            lockOverlay.classList.remove("hidden");
-            lockOverlay.classList.add("flex");
+            lockOverlay.classList.remove("hidden"); lockOverlay.classList.add("flex");
             if (isScannerActive && html5MobileScanner) { html5MobileScanner.stop(); isScannerActive = false; }
             stopMobileTeacherCamera();
           }
         } else {
-          if (lockOverlay.classList.contains("flex")) { 
-            lockOverlay.classList.add("hidden"); lockOverlay.classList.remove("flex"); 
-          }
+          if (lockOverlay.classList.contains("flex")) { lockOverlay.classList.add("hidden"); lockOverlay.classList.remove("flex"); }
         }
       }
 
@@ -275,17 +196,12 @@
 
     function checkTimeLockLogic(type, subType, userId) {
       const now = new Date(), totalM = now.getHours() * 60 + now.getMinutes(), dateStr = now.toISOString().split("T")[0];
-      if (totalM >= 450 && totalM < 630) { 
-        showToast("Sistem Dikunci! Jam 07:30 s/d 10:30 WIB", "error"); 
-        return false; 
-      }
-
+      if (totalM >= 450 && totalM < 630) { showToast("Sistem Dikunci! Jam 07:30 s/d 10:30 WIB", "error"); return false; }
       if (type === 'siswa') {
-        if (totalM >= 450) { showToast("Batas absen kedatangan siswa (07:30 WIB) berakhir", "error"); return false; }
+        if (totalM >= 450) { showToast("Batas absen siswa (07:30 WIB) berakhir", "error"); return false; }
         if (localStorage.getItem('absen_siswa_' + dateStr + '_' + userId)) { showToast("Siswa sudah absen hari ini!", "error"); return false; }
         return true;
       } 
-      
       if (type === 'guru') {
         if (subType === 'DATANG') {
           if (totalM >= 450) { showToast("Batas DATANG guru berakhir (07:30 WIB)", "error"); return false; }
@@ -310,11 +226,8 @@
       ["siswa", "guru", "log", "config"].forEach(function(t) {
         const viewEl = document.getElementById("view-" + t), navBtn = document.getElementById("nav-btn-" + t);
         if (viewEl && navBtn) {
-          if (t === tabKey) { 
-            viewEl.classList.remove("hidden"); navBtn.className = "flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition bg-brand-500/10 text-brand-400 font-bold"; 
-          } else { 
-            viewEl.classList.add("hidden"); navBtn.className = "flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition text-slate-400 hover:text-white font-semibold"; 
-          }
+          if (t === tabKey) { viewEl.classList.remove("hidden"); navBtn.className = "flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition bg-brand-500/10 text-brand-400 font-bold"; } 
+          else { viewEl.classList.add("hidden"); navBtn.className = "flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition text-slate-400 hover:text-white font-semibold"; }
         }
       });
       if (tabKey === "guru") { startGpsMonitoring(); if (!teacherMediaStream) startMobileTeacherCamera(); } else { stopMobileTeacherCamera(); }
@@ -346,7 +259,6 @@
       playBeepSuccess();
       const now = new Date(), dateStr = now.toISOString().split("T")[0];
       const recordId = "SIS-" + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + "-" + Math.floor(1000 + Math.random() * 9000);
-      
       const record = { TIMESTAMP: now.toISOString(), ID_ABSENSI_SISWA: recordId, TANGGAL: dateStr, NIS: cleanNis, NAMA_SISWA: student.nama, KELOMPOK: student.kelompok || "TK", STATUS: "Hadir", KETERANGAN: "Hadir" };
       localStorage.setItem('absen_siswa_' + dateStr + '_' + cleanNis, "1");
       logsSiswa.unshift(record); updateBadgeCounts(); renderStudentResult(record);
@@ -372,10 +284,7 @@
       geoWatchId = navigator.geolocation.watchPosition(
         function(pos) {
           currentGeoCoords = pos.coords;
-          const targetLat = parseFloat(document.getElementById("school-lat-input").value);
-          const targetLng = parseFloat(document.getElementById("school-lng-input").value);
-          const distance = calculateHaversineMeters(pos.coords.latitude, pos.coords.longitude, targetLat, targetLng);
-          
+          const distance = calculateHaversineMeters(pos.coords.latitude, pos.coords.longitude, CONFIG_SEKOLAH.lat, CONFIG_SEKOLAH.lng);
           isGpsPass = (distance <= 20) && !(pos.coords.isMock === true || (pos.coords.accuracy && pos.coords.accuracy < 0.5));
           const btnSubmit = document.getElementById("btn-submit-guru-final");
           if (btnSubmit) btnSubmit.disabled = !(isGpsPass && capturedSelfieDataUrl);
@@ -383,13 +292,6 @@
         function() { isGpsPass = false; const btnSubmit = document.getElementById("btn-submit-guru-final"); if (btnSubmit) btnSubmit.disabled = true; }, 
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
-    }
-
-    function calibrateCurrentGps() { 
-      if (!currentGeoCoords) return; 
-      document.getElementById("school-lat-input").value = currentGeoCoords.latitude.toFixed(6); 
-      document.getElementById("school-lng-input").value = currentGeoCoords.longitude.toFixed(6); 
-      showToast("Titik pusat sekolah disesuaikan dengan posisi HP saat ini!", "success"); 
     }
 
     async function startMobileTeacherCamera() {
@@ -438,61 +340,65 @@
       
       localStorage.setItem('absen_guru_' + tipe.toLowerCase() + '_' + dateStr + '_' + nug, "1");
       logsGuru.unshift(record); updateBadgeCounts(); retakeTeacherPhoto();
-      try { confetti({ particleCount: 35, spread: 65, origin: { y: 0.6 } }); } catch (e) {} 
-      playBeepSuccess(); showToast("Presensi Guru terkirim!", "success"); syncPayloadToGas("ABSENSI_GURU", record);
+      try { confetti({ particleCount: 35, spread: 65, origin: { y: 0.6 } }); } catch (e) {} playBeepSuccess(); showToast("Presensi Guru terkirim!", "success"); syncPayloadToGas("ABSENSI_GURU", record);
     }
 
     // -------------------------------------------------------------------------
-    // KOMUNIKASI SERVER MURNI (NATIVE GOOGLE APPS SCRIPT)
+    // SINKRONISASI MENGGUNAKAN JALUR URL (JSONP) KEMBALI SEPERTI SEMULA
     // -------------------------------------------------------------------------
     function syncPayloadToGas(actionName, payload) {
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function() { console.log("Berhasil Simpan"); })
-          .withFailureHandler(function(err) { alert("GAGAL MENYIMPAN: " + err.message); })
-          .nativePostPresensi(Object.assign({ action: actionName }, payload));
-      } else {
-        alert("SISTEM DITOLAK: Anda membuka aplikasi bukan dari jalur resmi Google Web App.");
-      }
+      const gasUrl = CONFIG_SEKOLAH.gasUrl; 
+      if (!gasUrl) return;
+      try { 
+        fetch(gasUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(Object.assign({ action: actionName }, payload)) }); 
+      } catch (err) {}
     }
 
     function loadMasterDataFromGas(showToastAlert = false) {
-      const selectEl = document.getElementById("select-guru");
-      if (selectEl) selectEl.innerHTML = '<option value="">-- MENGAMBIL DATA DARI DATABASE... --</option>';
-      if (showToastAlert) showToast("Mengambil Data Master...", "info");
+      const gasUrl = CONFIG_SEKOLAH.gasUrl;
+      
+      if (!gasUrl || gasUrl === "") { 
+        if(showToastAlert) alert("PERINGATAN: Anda belum memasukkan URL Web App Router Anda di dalam kode HTML (Baris 354)."); 
+        return; 
+      }
+      
+      if (showToastAlert) showToast("Mengambil data dari Spreadsheet...", "info");
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(jsonStr) {
-            try {
-              const data = JSON.parse(jsonStr);
-              if (data && data.success) {
-                masterGuruList = data.guru || []; 
-                studentDirectory = data.siswa || {};
-                
-                if (selectEl) {
-                  selectEl.innerHTML = masterGuruList.map(g => `<option value="${g.nug}|${g.nama}">${g.nug} - ${g.nama}</option>`).join("");
-                }
-                
-                // Jika user manual klik Sinkron di Tab Config, munculkan alert Sukses
-                if (showToastAlert) {
-                  alert("SUKSES SINKRONISASI!\n\n" + masterGuruList.length + " Guru Ditemukan.\n" + Object.keys(studentDirectory).length + " Siswa Ditemukan.");
-                } else {
-                  showToast(`Berhasil: ${masterGuruList.length} Guru & ${Object.keys(studentDirectory).length} Siswa`, "success");
-                }
-              } else {
-                alert("DATABASE KOSONG ATAU TERJADI KESALAHAN: " + (data.message || ""));
-              }
-            } catch(e) { 
-              alert("GAGAL MEMBACA FORMAT DATA: \n" + e.message); 
+      try {
+        const cbName = "gasCb_" + Date.now() + Math.floor(Math.random() * 1000); 
+        const script = document.createElement("script");
+        
+        window[cbName] = function(data) {
+          if (data && data.success) {
+            masterGuruList = data.guru || []; 
+            studentDirectory = data.siswa || {};
+            const guruSelect = document.getElementById("select-guru");
+            if (guruSelect) {
+              guruSelect.innerHTML = masterGuruList.map(g => `<option value="${g.nug}|${g.nama}">${g.nug} - ${g.nama}</option>`).join("");
             }
-          })
-          .withFailureHandler(function(err) { 
-            alert("KONEKSI KE DATABASE TERPUTUS: \n\n" + err.message); 
-          })
-          .nativeGetMasterPresensi();
-      } else {
-         alert("SISTEM DITOLAK!\n\nAplikasi ini harus dibuka dari Link Resmi Web App Google (yang berakhiran ?app=presensi) agar terhubung ke database sekolah.");
+            if (showToastAlert) {
+                alert(`SUKSES SINKRONISASI!\n\nDitemukan:\n- ${masterGuruList.length} Guru\n- ${Object.keys(studentDirectory).length} Siswa`);
+            } else {
+                showToast(`Berhasil: ${masterGuruList.length} Guru & ${Object.keys(studentDirectory).length} Siswa`, "success");
+            }
+          } else { 
+            if (showToastAlert) alert("DATA KOSONG DARI SERVER: Coba pastikan file backend sudah di-Deploy versi baru."); 
+          }
+          delete window[cbName]; 
+          script.remove();
+        };
+
+        script.onerror = function() {
+          if (showToastAlert) alert("KONEKSI GAGAL: Pastikan HP ada kuota internet dan URL Web App benar.");
+          delete window[cbName]; 
+          script.remove();
+        };
+
+        const separator = gasUrl.includes("?") ? "&" : "?";
+        script.src = `${gasUrl}${separator}action=GET_MASTER&callback=${cbName}&_=${Date.now()}`;
+        document.head.appendChild(script);
+      } catch (err) { 
+        if (showToastAlert) alert("TERJADI KESALAHAN BROWSER: " + err.message); 
       }
     }
 
@@ -501,7 +407,7 @@
     function updateBadgeCounts() { document.getElementById("count-siswa-badge").innerText = logsSiswa.length; document.getElementById("count-guru-badge").innerText = logsGuru.length; }
     function showToast(message, type = "info") { const w = document.getElementById("toast-wrapper"); const t = document.createElement("div"); const st = { success: "bg-emerald-950 text-emerald-200 border-emerald-500/40", error: "bg-red-950 text-red-200 border-red-500/40" }; t.className = `px-3.5 py-3 rounded-2xl border text-xs font-semibold shadow-2xl transition-all flex justify-between ${st[type]||st.info}`; t.innerHTML = `<span>${message}</span>`; w.appendChild(t); setTimeout(function() { t.style.opacity = "0"; setTimeout(function() { t.remove(); }, 250); }, 3200); }
 
-    // OTOMATIS LOAD SAAT DIBUKA
+    // OTOMATIS TARIK DATA SAAT APLIKASI DIBUKA
     window.addEventListener("DOMContentLoaded", function() { 
       loadMasterDataFromGas(false); 
     });
