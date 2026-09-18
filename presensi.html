@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#020617">
+  <title>Presensi Digital TK - TK PGRI Pakandangan Sangra</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { brand: { 50: '#ecfdf5', 400: '#34d399', 500: '#10b981', 600: '#059669', 900: '#064e3b' } }, fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } } }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body { -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; }
+    .scanner-reticle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 250px; height: 250px; border: 2px solid rgba(16, 185, 129, 0.4); border-radius: 24px; box-shadow: 0 0 0 4000px rgba(2, 6, 23, 0.65); pointer-events: none; }
+    .scanner-corner { position: absolute; width: 28px; height: 28px; border-color: #34d399; }
+    .c-tl { top: -2px; left: -2px; border-top-width: 4px; border-left-width: 4px; border-top-left-radius: 20px; }
+    .c-tr { top: -2px; right: -2px; border-top-width: 4px; border-right-width: 4px; border-top-right-radius: 20px; }
+    .c-bl { bottom: -2px; left: -2px; border-bottom-width: 4px; border-left-width: 4px; border-bottom-left-radius: 20px; }
+    .c-br { bottom: -2px; right: -2px; border-bottom-width: 4px; border-right-width: 4px; border-bottom-right-radius: 20px; }
+    .scanner-beam { position: absolute; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, #34d399, transparent); box-shadow: 0 0 12px #10b981; animation: mobileBeamAnim 2.2s infinite ease-in-out; }
+    @keyframes mobileBeamAnim { 0% { top: 8%; opacity: 0.2; } 50% { top: 92%; opacity: 1; } 100% { top: 8%; opacity: 0.2; } }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans text-slate-100 bg-slate-950 overflow-x-hidden selection:bg-brand-500 relative">
+
+  <!-- OVERLAY LOCKOUT SISTEM (07:30 s/d 10:30 WIB) -->
+  <div id="global-lock-overlay" class="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-xl hidden flex-col items-center justify-center p-6 text-center">
+    <div class="w-24 h-24 rounded-3xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 mb-6 shadow-[0_0_40px_rgba(239,68,68,0.2)]">
+      <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+    </div>
+    <h2 class="text-2xl font-extrabold text-white mb-2 uppercase tracking-wide">Sistem Terkunci</h2>
+    <p class="text-slate-400 text-sm max-w-xs leading-relaxed">
+      Aplikasi presensi ditutup sementara dari pukul <b class="text-white">07:30</b> s/d <b class="text-white">10:30 WIB</b>.<br><br>Sistem akan terbuka otomatis untuk absen pulang Guru pada pukul 10:30 WIB.
+    </p>
+    <div id="lock-clock-display" class="mt-8 font-mono text-xl text-red-400 font-bold bg-red-950/50 px-6 py-3 rounded-xl border border-red-900/50">--:--:-- WIB</div>
+  </div>
+
+  <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-lg border-b border-slate-800/80 px-4 py-3 shrink-0">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center font-extrabold text-slate-950 text-base shadow-md shadow-brand-500/20 shrink-0">TK</div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Presensi Digital TK</span>
+            <span id="conn-pill" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">ONLINE</span>
+          </div>
+          <h1 class="text-xs sm:text-sm font-extrabold tracking-tight text-white uppercase leading-tight">TK PGRI Pakandangan Sangra</h1>
+          <p id="live-clock" class="text-[10px] font-mono text-slate-400 mt-0.5">Memuat waktu...</p>
+        </div>
+      </div>
+      <button onclick="switchTab('config')" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition active:scale-95">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-md mx-auto px-4 pt-3 pb-24 flex flex-col gap-4 overflow-y-auto">
+    <div id="toast-wrapper" class="fixed top-14 left-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-md mx-auto"></div>
+
+    <!-- TAB 1: ABSENSI SISWA -->
+    <section id="view-siswa" class="flex flex-col gap-4">
+      <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-3.5 shadow-2xl flex flex-col gap-3 relative">
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-ping"></span>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-brand-400">Scanner Kartu Barcode</h2>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="toggleMobileTorch()" class="p-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs flex items-center gap-1 active:scale-90 transition">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span id="torch-label" class="text-[10px] font-bold">Lampu</span>
+            </button>
+            <button onclick="toggleMobileStudentCamera()" class="p-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs flex items-center gap-1 active:scale-90 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span class="text-[10px] font-bold">Putar</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="relative w-full aspect-[1/1] bg-black rounded-2xl overflow-hidden flex items-center justify-center border border-slate-800 shadow-inner">
+          <div id="mobile-barcode-viewport" class="w-full h-full"></div>
+          <div class="scanner-reticle">
+            <div class="scanner-corner c-tl"></div><div class="scanner-corner c-tr"></div>
+            <div class="scanner-corner c-bl"></div><div class="scanner-corner c-br"></div>
+            <div class="scanner-beam"></div>
+          </div>
+          <div id="siswa-camera-splash" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 text-center z-10">
+            <div class="w-16 h-16 rounded-2xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 mb-3">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+            </div>
+            <h3 class="text-sm font-bold text-white mb-1">Kamera Pemindai Siap</h3>
+            <p class="text-xs text-slate-400 mb-4 max-w-xs">Gunakan kamera HP untuk membaca barcode/QR kartu siswa secara instan.</p>
+            <button onclick="startMobileScanner()" class="w-full py-3.5 bg-brand-500 hover:bg-brand-400 active:scale-98 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition">
+              BUKA KAMERA SCANNER HP
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <div class="relative flex-1">
+            <input type="text" id="input-nis-manual" inputmode="numeric" placeholder="Ketik NIS manual..." class="w-full bg-slate-950 border border-slate-700 text-xs rounded-xl px-3.5 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 font-mono">
+          </div>
+          <button onclick="handleManualNis()" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-xs rounded-xl border border-slate-700 transition">Input</button>
+        </div>
+      </div>
+
+      <div id="siswa-recent-card" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Hasil Scan Terakhir</span>
+          <span id="scan-feedback-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Menunggu scan...</span>
+        </div>
+        <div id="siswa-detail-view" class="p-4 rounded-xl bg-slate-950/80 border border-dashed border-slate-800 text-center">
+          <p class="text-xs text-slate-400">Arahkan kamera ke barcode siswa untuk merekam kehadiran harian.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: ABSENSI GURU -->
+    <section id="view-guru" class="hidden flex flex-col gap-4">
+      <div class="hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-4 shadow-2xl flex-col gap-3">
+        <span id="gps-status-badge"></span><span id="gps-val-distance"></span><span id="gps-val-mock"></span><span id="gps-val-acc"></span><span id="wm-gps-line"></span>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-3.5 shadow-2xl flex flex-col gap-3 mt-2">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Kamera Selfie Langsung</span>
+          <span class="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">Lokasi & Waktu Terkunci</span>
+        </div>
+
+        <div class="relative w-full aspect-[3/4] bg-black rounded-2xl overflow-hidden flex items-center justify-center border border-slate-800 shadow-inner">
+          <video id="guru-video-stream" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
+          <canvas id="guru-photo-canvas" class="hidden"></canvas>
+          <img id="guru-preview-img" class="hidden absolute inset-0 w-full h-full object-cover z-20" alt="Selfie Absen">
+          
+          <div id="guru-wm-preview" class="absolute bottom-2 left-2 right-2 bg-black/75 backdrop-blur-md rounded-xl p-2 text-[10px] font-mono text-slate-200 z-10 pointer-events-none border border-white/10 space-y-0.5">
+            <div id="wm-time-line" class="font-bold text-white">WAKTU AKTIF...</div>
+            <div class="flex items-center justify-between text-emerald-400 text-[9px] pt-0.5 font-sans font-bold">
+              <span>TK PGRI PAKANDANGAN SANGRA • GURU</span>
+              <span>GEO-VERIFIED</span>
+            </div>
+          </div>
+
+          <div id="guru-camera-splash" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 text-center z-30">
+            <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-3">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <h3 class="text-sm font-bold text-white mb-1">Kamera Selfie Belum Aktif</h3>
+            <p class="text-xs text-slate-400 mb-4 max-w-xs">Ambil foto kehadiran langsung dari kamera ponsel.</p>
+            <button onclick="startMobileTeacherCamera()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition">
+              BUKA KAMERA DEPAN
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-guru-snap" onclick="captureTeacherPhoto()" class="flex-1 py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition">Ambil Foto Selfie</button>
+          <button id="btn-guru-retake" onclick="retakeTeacherPhoto()" class="hidden px-4 py-3.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-bold text-xs rounded-xl border border-slate-700 transition">Ulang Foto</button>
+        </div>
+
+        <div class="space-y-3 pt-1">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Nama Guru & NUG</label>
+            <select id="select-guru" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-indigo-500">
+              <option value="">-- Menghubungkan ke tabel... --</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Jenis Presensi (Otomatis)</label>
+            <select id="guru-tipe" disabled class="w-full bg-slate-900 border border-slate-700 text-slate-300 rounded-xl px-3 py-2.5 text-xs cursor-not-allowed">
+              <option value="DATANG">Jam Datang (Sesi Pagi)</option>
+              <option value="PULANG">Jam Pulang (Sesi Siang)</option>
+            </select>
+          </div>
+
+          <div class="hidden">
+            <select id="guru-status-opt"><option value="Hadir">Hadir</option></select>
+            <input type="text" id="guru-keterangan-txt" value="Hadir">
+          </div>
+
+          <button id="btn-submit-guru-final" onclick="submitGuruAttendance()" disabled class="w-full py-3.5 bg-brand-500 hover:bg-brand-400 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed active:scale-98 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2 transition mt-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            KIRIM ABSENSI GURU
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: LOG -->
+    <section id="view-log" class="hidden flex flex-col gap-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-2xl flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Riwayat Presensi Hari Ini</h3>
+        </div>
+        <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-2xl border border-slate-800 text-xs">
+          <button id="btn-tab-log-siswa" onclick="setLogTab('siswa')" class="py-2 rounded-xl font-bold bg-brand-500 text-slate-950 transition flex items-center justify-center gap-1.5">
+            <span>Siswa</span><span id="count-siswa-badge" class="px-1.5 py-0.2 bg-slate-950/30 rounded-full text-[10px]">0</span>
+          </button>
+          <button id="btn-tab-log-guru" onclick="setLogTab('guru')" class="py-2 rounded-xl font-bold text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5">
+            <span>Guru</span><span id="count-guru-badge" class="px-1.5 py-0.2 bg-slate-800 rounded-full text-[10px]">0</span>
+          </button>
+        </div>
+        <div id="log-list-container" class="flex flex-col gap-2 max-h-96 overflow-y-auto pr-1"></div>
+      </div>
+    </section>
+
+    <!-- TAB 4: CONFIG -->
+    <section id="view-config" class="hidden flex flex-col gap-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-2xl space-y-4">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Integrasi Web App Apps Script</h3>
+        <div class="space-y-2">
+          <label class="block text-[11px] font-semibold text-slate-400">URL Web App Router.gs</label>
+          <input type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-brand-500">
+          <div class="flex items-center gap-2 pt-1">
+            <button onclick="pingGasEndpoint()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-brand-400 border border-slate-700 rounded-xl font-bold text-xs transition">Tes Sync (Ping)</button>
+            <button onclick="loadMasterDataFromGas(true)" class="flex-1 py-2.5 bg-brand-500 hover:bg-brand-400 active:scale-95 text-slate-950 rounded-xl font-extrabold text-xs transition">Sinkron Master</button>
+          </div>
+        </div>
+        <div class="border-t border-slate-800/80 pt-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-300">Koordinat Titik Pusat Sekolah</h4>
+            <button onclick="calibrateCurrentGps()" class="text-[10px] text-brand-400 font-bold bg-brand-500/10 px-2.5 py-1 rounded-lg border border-brand-500/20 active:scale-95 transition">Gunakan Titik Saat Ini</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="block text-[10px] text-slate-400 mb-1">Latitude</label><input type="text" id="school-lat-input" value="-6.200000" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono"></div>
+            <div><label class="block text-[10px] text-slate-400 mb-1">Longitude</label><input type="text" id="school-lng-input" value="106.816666" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/80 px-2 py-2">
+    <div class="max-w-md mx-auto grid grid-cols-4 gap-1">
+      <button id="nav-btn-siswa" onclick="switchTab('siswa')" class="flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition bg-brand-500/10 text-brand-400 font-bold"><svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg><span class="text-[10px] tracking-tight">Scan Siswa</span></button>
+      <button id="nav-btn-guru" onclick="switchTab('guru')" class="flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition text-slate-400 hover:text-white font-semibold"><svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] tracking-tight">Selfie Guru</span></button>
+      <button id="nav-btn-log" onclick="switchTab('log')" class="flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition text-slate-400 hover:text-white font-semibold"><svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span class="text-[10px] tracking-tight">Log Absen</span></button>
+      <button id="nav-btn-config" onclick="switchTab('config')" class="flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition text-slate-400 hover:text-white font-semibold"><svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] tracking-tight">Setelan</span></button>
+    </div>
+  </nav>
+
+  <script>
+    const CONFIG_SEKOLAH = { gasUrl: "", lat: -6.200000, lng: 106.816666 };
+    let masterGuruList = [], studentDirectory = {}, currentTab = "siswa";
+    let html5MobileScanner = null, isScannerActive = false, cameraFacing = "environment", isTorchActive = false;
+    let teacherMediaStream = null, capturedSelfieDataUrl = null, currentGeoCoords = null, isGpsPass = false, geoWatchId = null;
+    let logsSiswa = [], logsGuru = [], logActiveFilter = "siswa", audioCtx = null;
+
+    setInterval(() => {
+      const now = new Date();
+      const h = now.getHours(), m = now.getMinutes(), totalM = h * 60 + m;
+      const timeStrWib = now.toLocaleTimeString("id-ID") + " WIB";
+      
+      const clockEl = document.getElementById("live-clock");
+      if (clockEl) clockEl.innerText = timeStrWib;
+      const wmTimeEl = document.getElementById("wm-time-line");
+      if (wmTimeEl) wmTimeEl.innerText = now.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
+      const lockClockEl = document.getElementById("lock-clock-display");
+      if (lockClockEl) lockClockEl.innerText = timeStrWib;
+
+      const lockOverlay = document.getElementById("global-lock-overlay");
+      if (totalM >= 450 && totalM < 630) {
+        if (lockOverlay.classList.contains("hidden")) {
+          lockOverlay.classList.remove("hidden"); lockOverlay.classList.add("flex");
+          if (isScannerActive && html5MobileScanner) { html5MobileScanner.stop(); isScannerActive = false; }
+          stopMobileTeacherCamera();
+        }
+      } else {
+        if (lockOverlay.classList.contains("flex")) { lockOverlay.classList.add("hidden"); lockOverlay.classList.remove("flex"); }
+      }
+
+      const tipeEl = document.getElementById("guru-tipe");
+      if (tipeEl) {
+        if (totalM < 450) tipeEl.value = "DATANG";
+        else if (totalM >= 630) tipeEl.value = "PULANG";
+      }
+    }, 1000);
+
+    function checkTimeLockLogic(type, subType, userId) {
+      const now = new Date(), totalM = now.getHours() * 60 + now.getMinutes(), dateStr = now.toISOString().split("T")[0];
+      if (totalM >= 450 && totalM < 630) { showToast("Sistem Dikunci! Jam 07:30 s/d 10:30 WIB", "error"); return false; }
+
+      if (type === 'siswa') {
+        if (totalM >= 450) { showToast("Batas absen kedatangan siswa (07:30 WIB) berakhir", "error"); return false; }
+        if (localStorage.getItem('absen_siswa_' + dateStr + '_' + userId)) { showToast("Siswa sudah absen hari ini!", "error"); return false; }
+        return true;
+      } 
+      
+      if (type === 'guru') {
+        if (subType === 'DATANG') {
+          if (totalM >= 450) { showToast("Batas DATANG guru berakhir (07:30 WIB)", "error"); return false; }
+          if (localStorage.getItem('absen_guru_datang_' + dateStr + '_' + userId)) { showToast("Sudah absen DATANG!", "error"); return false; }
+          return true;
+        } 
+        else if (subType === 'PULANG') {
+          if (totalM < 630) { showToast("Absen PULANG dibuka jam 10:30 WIB", "error"); return false; }
+          if (localStorage.getItem('absen_guru_pulang_' + dateStr + '_' + userId)) { showToast("Sudah absen PULANG!", "error"); return false; }
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function getAudioContext() { if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if (audioCtx.state === "suspended") audioCtx.resume(); return audioCtx; }
+    function playBeepSuccess() { try { const ctx = getAudioContext(), osc = ctx.createOscillator(), gain = ctx.createGain(); osc.type = "sine"; osc.frequency.setValueAtTime(1046.5, ctx.currentTime); gain.gain.setValueAtTime(0.2, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12); osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.12); if ("vibrate" in navigator) navigator.vibrate([60, 30, 80]); } catch (e) {} }
+    function playBeepReject() { try { const ctx = getAudioContext(), osc = ctx.createOscillator(), gain = ctx.createGain(); osc.type = "sawtooth"; osc.frequency.setValueAtTime(220, ctx.currentTime); gain.gain.setValueAtTime(0.3, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3); osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3); if ("vibrate" in navigator) navigator.vibrate([150, 100, 150]); } catch (e) {} }
+
+    function switchTab(tabKey) {
+      currentTab = tabKey;
+      ["siswa", "guru", "log", "config"].forEach(t => {
+        const viewEl = document.getElementById("view-" + t), navBtn = document.getElementById("nav-btn-" + t);
+        if (viewEl && navBtn) {
+          if (t === tabKey) { viewEl.classList.remove("hidden"); navBtn.className = "flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition bg-brand-500/10 text-brand-400 font-bold"; }
+          else { viewEl.classList.add("hidden"); navBtn.className = "flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition text-slate-400 hover:text-white font-semibold"; }
+        }
+      });
+      if (tabKey === "guru") { startGpsMonitoring(); if (!teacherMediaStream) startMobileTeacherCamera(); } else { stopMobileTeacherCamera(); }
+      if (tabKey === "log") renderLogListView();
+    }
+
+    async function startMobileScanner() {
+      getAudioContext(); const splash = document.getElementById("siswa-camera-splash");
+      try {
+        if (!html5MobileScanner) html5MobileScanner = new Html5Qrcode("mobile-barcode-viewport");
+        splash.classList.add("hidden");
+        await html5MobileScanner.start({ facingMode: cameraFacing }, { fps: 20, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 }, onBarcodeReadSuccess, () => {});
+        isScannerActive = true;
+      } catch (err) { splash.classList.remove("hidden"); showToast("Gagal membuka kamera scanner", "error"); }
+    }
+
+    async function toggleMobileStudentCamera() { if (!isScannerActive || !html5MobileScanner) return; cameraFacing = cameraFacing === "environment" ? "user" : "environment"; await html5MobileScanner.stop(); isScannerActive = false; startMobileScanner(); }
+    async function toggleMobileTorch() { if (!isScannerActive || !html5MobileScanner) return; try { isTorchActive = !isTorchActive; await html5MobileScanner.applyVideoConstraints({ advanced: [{ torch: isTorchActive }] }); document.getElementById("torch-label").innerText = isTorchActive ? "Nyala" : "Lampu"; } catch (e) {} }
+
+    let scanCoolDown = false;
+    function onBarcodeReadSuccess(decodedCode) { if (scanCoolDown) return; scanCoolDown = true; processStudentAttendanceRecord(decodedCode); setTimeout(() => { scanCoolDown = false; }, 2500); }
+    function handleManualNis() { const input = document.getElementById("input-nis-manual"); if (!input.value.trim()) return; processStudentAttendanceRecord(input.value.trim()); input.value = ""; }
+
+    function processStudentAttendanceRecord(nisCode) {
+      const cleanNis = String(nisCode).trim(), student = studentDirectory[cleanNis];
+      if (!student) { playBeepReject(); showToast(`NIS '${cleanNis}' Tidak Ditemukan!`, "error"); return; }
+      if (!checkTimeLockLogic('siswa', null, cleanNis)) { playBeepReject(); return; }
+
+      playBeepSuccess();
+      const now = new Date(), dateStr = now.toISOString().split("T")[0];
+      const recordId = "SIS-" + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + "-" + Math.floor(1000 + Math.random() * 9000);
+      
+      const record = { TIMESTAMP: now.toISOString(), ID_ABSENSI_SISWA: recordId, TANGGAL: dateStr, NIS: cleanNis, NAMA_SISWA: student.nama, KELOMPOK: student.kelompok || "TK", STATUS: "Hadir", KETERANGAN: "Hadir" };
+      localStorage.setItem('absen_siswa_' + dateStr + '_' + cleanNis, "1");
+      logsSiswa.unshift(record); updateBadgeCounts(); renderStudentResult(record);
+      try { confetti({ particleCount: 30, spread: 55, origin: { y: 0.6 } }); } catch (e) {}
+      showToast("Kehadiran " + student.nama + " tercatat!", "success"); syncPayloadToGas("ABSENSI_SISWA", record);
+    }
+
+    function renderStudentResult(record) {
+      document.getElementById("scan-feedback-badge").innerText = record.ID_ABSENSI_SISWA;
+      document.getElementById("scan-feedback-badge").className = "text-[10px] font-mono px-2 py-0.5 rounded bg-brand-500/20 text-brand-300 font-bold border border-brand-500/30";
+      document.getElementById("siswa-detail-view").innerHTML = `<div class="flex items-start justify-between text-left"><div><span class="text-xs text-brand-400 font-bold block">${record.NAMA_SISWA}</span><span class="text-[11px] text-slate-300 font-mono">NIS: ${record.NIS}</span><span class="text-[10px] text-slate-500 block">${record.TIMESTAMP.substring(0, 10)} | Berhasil Direkam</span></div><span class="bg-brand-500/20 text-brand-300 border border-brand-500/30 text-[10px] font-bold px-2 py-1 rounded-lg">${record.STATUS}</span></div>`;
+    }
+
+    function calculateHaversineMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371e3, phi1 = lat1 * Math.PI / 180, phi2 = lat2 * Math.PI / 180, deltaPhi = (lat2 - lat1) * Math.PI / 180, deltaLambda = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
+      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    }
+
+    function startGpsMonitoring() {
+      if (!navigator.geolocation) return;
+      if (geoWatchId !== null) navigator.geolocation.clearWatch(geoWatchId);
+      geoWatchId = navigator.geolocation.watchPosition(pos => {
+        currentGeoCoords = pos.coords;
+        const distance = calculateHaversineMeters(pos.coords.latitude, pos.coords.longitude, parseFloat(document.getElementById("school-lat-input").value), parseFloat(document.getElementById("school-lng-input").value));
+        isGpsPass = (distance <= 20) && !(pos.coords.isMock === true || (pos.coords.accuracy && pos.coords.accuracy < 0.5));
+        document.getElementById("btn-submit-guru-final").disabled = !(isGpsPass && capturedSelfieDataUrl);
+      }, () => { isGpsPass = false; document.getElementById("btn-submit-guru-final").disabled = true; }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+    }
+
+    function calibrateCurrentGps() { if (!currentGeoCoords) return; document.getElementById("school-lat-input").value = currentGeoCoords.latitude.toFixed(6); document.getElementById("school-lng-input").value = currentGeoCoords.longitude.toFixed(6); showToast("Titik pusat sekolah disesuaikan dengan posisi HP saat ini!", "success"); }
+
+    async function startMobileTeacherCamera() {
+      getAudioContext(); const splash = document.getElementById("guru-camera-splash"), video = document.getElementById("guru-video-stream");
+      try { teacherMediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false }); video.srcObject = teacherMediaStream; splash.classList.add("hidden"); } catch (err) { splash.classList.remove("hidden"); showToast("Izin kamera ditolak", "error"); }
+    }
+    function stopMobileTeacherCamera() { if (teacherMediaStream) { teacherMediaStream.getTracks().forEach(t => t.stop()); teacherMediaStream = null; } }
+
+    function captureTeacherPhoto() {
+      getAudioContext(); const video = document.getElementById("guru-video-stream"), canvas = document.getElementById("guru-photo-canvas"), previewImg = document.getElementById("guru-preview-img");
+      if (!video.videoWidth) return; canvas.width = video.videoWidth; canvas.height = video.videoHeight; const ctx = canvas.getContext("2d");
+      ctx.save(); ctx.translate(canvas.width, 0); ctx.scale(-1, 1); ctx.drawImage(video, 0, 0, canvas.width, canvas.height); ctx.restore();
+
+      const now = new Date(), timeStr = now.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
+      const nama = (document.getElementById("select-guru")?.value || "").split("|")[1] || "GURU";
+      const boxHeight = Math.max(90, Math.floor(canvas.height * 0.16)), fontSize = Math.max(14, Math.floor(canvas.width * 0.032));
+      
+      ctx.fillStyle = "rgba(2, 6, 23, 0.85)"; ctx.fillRect(0, canvas.height - boxHeight, canvas.width, boxHeight);
+      ctx.fillStyle = "#10b981"; ctx.fillRect(0, canvas.height - boxHeight, canvas.width, 3);
+      ctx.fillStyle = "#ffffff"; ctx.font = `bold ${fontSize}px sans-serif`; ctx.fillText(`TK PGRI PAKANDANGAN SANGRA • ${nama}`, 20, canvas.height - boxHeight + fontSize + 10);
+      ctx.fillStyle = "#34d399"; ctx.font = `${Math.max(12, fontSize - 2)}px monospace`; ctx.fillText(timeStr, 20, canvas.height - boxHeight + (fontSize * 2) + 14);
+
+      capturedSelfieDataUrl = canvas.toDataURL("image/jpeg", 0.82); previewImg.src = capturedSelfieDataUrl; previewImg.classList.remove("hidden");
+      document.getElementById("btn-guru-snap").classList.add("hidden"); document.getElementById("btn-guru-retake").classList.remove("hidden");
+      if (isGpsPass) { document.getElementById("btn-submit-guru-final").disabled = false; showToast("Selfie berhasil", "success"); } else { document.getElementById("btn-submit-guru-final").disabled = true; showToast("Di luar radius 20 Meter / GPS Palsu", "error"); }
+    }
+
+    function retakeTeacherPhoto() {
+      capturedSelfieDataUrl = null; document.getElementById("guru-preview-img").classList.add("hidden");
+      document.getElementById("btn-guru-snap").classList.remove("hidden"); document.getElementById("btn-guru-retake").classList.add("hidden"); document.getElementById("btn-submit-guru-final").disabled = true;
+    }
+
+    async function submitGuruAttendance() {
+      const guruData = document.getElementById("select-guru").value.split("|"), nug = guruData[0], tipe = document.getElementById("guru-tipe").value;
+      if (!nug) { showToast("Pilih Nama Guru!", "error"); return; }
+      if (!checkTimeLockLogic('guru', tipe, nug)) { playBeepReject(); return; }
+      if (!isGpsPass) { playBeepReject(); showToast("Ditolak: Di luar radius 20m!", "error"); return; }
+
+      const now = new Date(), timeStr = now.toTimeString().split(" ")[0], dateStr = now.toISOString().split("T")[0];
+      const record = { TIMESTAMP: now.toISOString(), ID_ABSENSI_GURU: "GUR-" + Date.now(), TANGGAL: dateStr, NUG: nug, NAMA_GURU: guruData[1], STATUS: "Hadir", KETERANGAN: "Hadir", JAM_DATANG: tipe === "DATANG" ? timeStr : "-", JAM_PULANG: tipe === "PULANG" ? timeStr : "-", BASE64_IMAGE: capturedSelfieDataUrl, LINK_BUKTI_ABSEN: "Uploading..." };
+      
+      localStorage.setItem('absen_guru_' + tipe.toLowerCase() + '_' + dateStr + '_' + nug, "1");
+      logsGuru.unshift(record); updateBadgeCounts(); retakeTeacherPhoto();
+      try { confetti({ particleCount: 35, spread: 65, origin: { y: 0.6 } }); } catch (e) {} playBeepSuccess(); showToast("Presensi Guru terkirim!", "success"); syncPayloadToGas("ABSENSI_GURU", record);
+    }
+
+    async function syncPayloadToGas(actionName, payload) {
+      const gasUrl = document.getElementById("gas-url-input").value.trim(); if (!gasUrl) return;
+      try { fetch(gasUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(Object.assign({ action: actionName }, payload)) }); } catch (err) {}
+    }
+
+    // MEMPERBAIKI BUG PEMISAH URL JSONP (? DAN &) AGAR TIDAK BENTROK DENGAN ROUTER
+    async function loadMasterDataFromGas(showToastAlert = false) {
+      const gasUrl = document.getElementById("gas-url-input").value.trim();
+      if (!gasUrl) return;
+      if (showToastAlert) showToast("Sinkronisasi Master...", "info");
+
+      try {
+        const cbName = "gasCb_" + Date.now();
+        const script = document.createElement("script");
+        window[cbName] = function(data) {
+          if (data && data.success) {
+            masterGuruList = data.guru || []; studentDirectory = data.siswa || {};
+            const guruSelect = document.getElementById("select-guru");
+            if (guruSelect) guruSelect.innerHTML = masterGuruList.map(g => `<option value="${g.nug}|${g.nama}">${g.nug} - ${g.nama}</option>`).join("");
+            if (showToastAlert) showToast(`Berhasil: ${masterGuruList.length} Guru & ${Object.keys(studentDirectory).length} Siswa`, "success");
+          }
+          delete window[cbName]; script.remove();
+        };
+        // Fix Krusial URL Separator
+        const separator = gasUrl.includes("?") ? "&" : "?";
+        script.src = `${gasUrl}${separator}action=GET_MASTER&callback=${cbName}&_=${Date.now()}`;
+        document.head.appendChild(script);
+      } catch (err) { if (showToastAlert) showToast("Gagal Terhubung ke Router", "error"); }
+    }
+
+    function pingGasEndpoint() { loadMasterDataFromGas(true); }
+    function setLogTab(type) { logActiveFilter = type; document.getElementById("btn-tab-log-siswa").className = type === "siswa" ? "py-2 rounded-xl font-bold bg-brand-500 text-slate-950 flex items-center justify-center gap-1.5" : "py-2 rounded-xl font-bold text-slate-400 flex items-center justify-center gap-1.5"; document.getElementById("btn-tab-log-guru").className = type === "guru" ? "py-2 rounded-xl font-bold bg-indigo-500 text-white flex items-center justify-center gap-1.5" : "py-2 rounded-xl font-bold text-slate-400 flex items-center justify-center gap-1.5"; renderLogListView(); }
+    function renderLogListView() { const container = document.getElementById("log-list-container"), records = logActiveFilter === "siswa" ? logsSiswa : logsGuru; if (records.length === 0) { container.innerHTML = `<div class="text-center py-4 text-xs text-slate-500">Kosong</div>`; return; } if (logActiveFilter === "siswa") { container.innerHTML = records.map(r => `<div class="p-3 bg-slate-950 rounded-2xl border border-slate-800/80 flex items-center justify-between"><div><span class="text-xs font-bold text-white">${r.NAMA_SISWA}</span><br><span class="text-[10px] text-slate-400">${r.NIS} | ${r.TIMESTAMP.substring(11,19)}</span></div><span class="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-500/15 text-brand-300">Hadir</span></div>`).join(""); } else { container.innerHTML = records.map(g => `<div class="p-3 bg-slate-950 rounded-2xl border border-slate-800/80 flex items-center justify-between"><div><span class="text-xs font-bold text-white">${g.NAMA_GURU}</span><br><span class="text-[10px] text-slate-400">${g.JAM_DATANG !== "-" ? "Masuk: " + g.JAM_DATANG : "Pulang: " + g.JAM_PULANG}</span></div><span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300">Valid</span></div>`).join(""); } }
+    function updateBadgeCounts() { document.getElementById("count-siswa-badge").innerText = logsSiswa.length; document.getElementById("count-guru-badge").innerText = logsGuru.length; }
+    function showToast(message, type = "info") { const w = document.getElementById("toast-wrapper"), t = document.createElement("div"), st = { success: "bg-emerald-950 text-emerald-200 border-emerald-500/40", error: "bg-red-950 text-red-200 border-red-500/40" }; t.className = `px-3.5 py-3 rounded-2xl border text-xs font-semibold shadow-2xl transition-all flex justify-between ${st[type]||st.info}`; t.innerHTML = `<span>${message}</span>`; w.appendChild(t); setTimeout(() => { t.style.opacity="0"; setTimeout(()=>t.remove(), 250); }, 3200); }
+
+    window.addEventListener("DOMContentLoaded", () => { document.getElementById("gas-url-input").value = CONFIG_SEKOLAH.gasUrl; loadMasterDataFromGas(false); });
+  </script>
+</body>
+</html>
